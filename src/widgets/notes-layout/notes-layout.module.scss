@@ -1,0 +1,14 @@
+.layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  height: 100%;
+}
+
+.sidebar {
+  border-right: 1px solid #e5e7eb;
+  background: #fafafa;
+}
+
+.workspace {
+  background: #ffffff;
+}

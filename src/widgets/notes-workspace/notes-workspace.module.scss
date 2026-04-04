@@ -1,0 +1,75 @@
+.root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.actions {
+  display: flex;
+  gap: 4px;
+}
+
+.content {
+  flex: 1;
+  overflow: auto;
+  margin-top: 12px;
+}
+
+.markdown {
+  white-space: normal;
+  line-height: 1.6;
+
+  h1,
+  h2,
+  h3 {
+    margin: 16px 0 8px;
+    line-height: 1.2;
+  }
+
+  p {
+    margin: 8px 0;
+  }
+
+  ul,
+  ol {
+    margin: 8px 0 8px 20px;
+  }
+
+  blockquote {
+    margin: 12px 0;
+    padding-left: 12px;
+    border-left: 3px solid #e5e7eb;
+    color: #374151;
+  }
+
+  code {
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+      'Courier New', monospace;
+    font-size: 0.95em;
+    background: #f3f4f6;
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+
+  pre {
+    background: #0b1020;
+    color: #e5e7eb;
+    padding: 12px;
+    border-radius: 10px;
+    overflow: auto;
+  }
+
+  pre code {
+    background: transparent;
+    padding: 0;
+  }
+}
