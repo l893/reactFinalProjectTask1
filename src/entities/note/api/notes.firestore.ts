@@ -93,12 +93,11 @@ export async function confirmUserNoteBody(
   userId: string,
   noteId: string,
   body: string,
+  updatedAt: number,
 ): Promise<void> {
-  const now = Date.now();
-
   await updateDoc(doc(notesCollection(userId), noteId), {
     body,
-    updatedAt: now,
+    updatedAt,
   } satisfies Partial<NoteDocument>);
 }
 
@@ -106,12 +105,11 @@ export async function confirmUserNoteTitle(
   userId: string,
   noteId: string,
   title: string,
+  updatedAt: number,
 ): Promise<void> {
-  const now = Date.now();
-
   await updateDoc(doc(notesCollection(userId), noteId), {
     title: normalizeTitle(title),
-    updatedAt: now,
+    updatedAt,
   } satisfies Partial<NoteDocument>);
 }
 

@@ -175,14 +175,15 @@ export const NotesProvider = ({
 
   const confirmNoteBody = useCallback<NotesActions['confirmNoteBody']>(
     (noteId: string, body: string) => {
+      const confirmedAt = Date.now();
       if (userId) {
-        void confirmUserNoteBody(userId, noteId, body);
+        void confirmUserNoteBody(userId, noteId, body, confirmedAt);
       }
       dispatch({
         type: 'note/bodyConfirmed',
         noteId,
         body,
-        updatedAt: Date.now(),
+        updatedAt: confirmedAt,
       });
     },
     [userId],
@@ -200,14 +201,15 @@ export const NotesProvider = ({
 
   const confirmNoteTitle = useCallback<NotesActions['confirmNoteTitle']>(
     (noteId: string, title: string) => {
+      const confirmedAt = Date.now();
       if (userId) {
-        void confirmUserNoteTitle(userId, noteId, title);
+        void confirmUserNoteTitle(userId, noteId, title, confirmedAt);
       }
       dispatch({
         type: 'note/titleConfirmed',
         noteId,
         title,
-        updatedAt: Date.now(),
+        updatedAt: confirmedAt,
       });
     },
     [userId],
