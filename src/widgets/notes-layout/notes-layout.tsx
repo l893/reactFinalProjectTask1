@@ -1,6 +1,6 @@
 import { NotesSidebar } from '@widgets/notes-sidebar/notes-sidebar';
 import { NotesWorkspace } from '@widgets/notes-workspace/notes-workspace';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Button,
   Dialog,
@@ -41,9 +41,9 @@ export const NotesLayout = (): React.JSX.Element => {
   const isNoteSelected = Boolean(selectedNote);
   const debouncedDraftBody = useDebouncedValue(draftBody, 600);
 
-  function focusSearchInput(): void {
+  const focusSearchInput = useCallback((): void => {
     searchInputElementRef.current?.focus();
-  }
+  }, []);
 
   function handleSearchQueryChange(nextSearchQuery: string): void {
     setSearchQuery(nextSearchQuery);
@@ -61,18 +61,18 @@ export const NotesLayout = (): React.JSX.Element => {
     setIsEditingBody(true);
   }
 
-  function stopBodyEditing(): void {
+  const stopBodyEditing = useCallback((): void => {
     setIsEditingBody(false);
     setEditingNoteId(null);
     setEditingOriginalBody('');
     setDraftBody('');
-  }
+  }, []);
 
-  function finalizeBodyEditing(): void {
+  const finalizeBodyEditing = useCallback((): void => {
     if (!editingNoteId) return;
     updateNoteBody(editingNoteId, draftBody);
     stopBodyEditing();
-  }
+  }, [draftBody, editingNoteId, stopBodyEditing, updateNoteBody]);
 
   function handleToggleEditBody(): void {
     if (!selectedNote) return;
@@ -127,10 +127,10 @@ export const NotesLayout = (): React.JSX.Element => {
     proceedToPendingNote();
   }
 
-  function handleSavePromptClose(): void {
+  const handleSavePromptClose = useCallback((): void => {
     setIsSavePromptDialogOpen(false);
     setPendingSelectedNoteId(null);
-  }
+  }, []);
 
   const hotkeys = useMemo(() => {
     return [
