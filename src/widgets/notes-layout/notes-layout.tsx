@@ -202,6 +202,7 @@ export const NotesLayout = (): React.JSX.Element => {
     isEditingBody,
     selectedNoteId,
     selectNote,
+    stopBodyEditing,
   ]);
 
   useEffect(() => {
