@@ -23,15 +23,12 @@ function notesCollection(userId: string) {
   return collection(getFirebaseFirestore(), 'users', userId, 'notes');
 }
 
-function deriveTitleFromBody(body: string): string {
-  const firstNonEmptyLine =
-    body
-      .split('\n')
-      .map((line) => line.trim())
-      .find((line) => line.length > 0) ?? '';
-
-  const title = firstNonEmptyLine || 'New note';
-  return title.length > 40 ? `${title.slice(0, 40)}…` : title;
+function normalizeTitle(title: string): string {
+  const normalizedTitle = title.trim();
+  if (!normalizedTitle) return 'New note';
+  return normalizedTitle.length > 80
+    ? `${normalizedTitle.slice(0, 80)}…`
+    : normalizedTitle;
 }
 
 export function subscribeToUserNotes(
@@ -81,7 +78,19 @@ export async function updateUserNoteBody(
 
   await updateDoc(doc(notesCollection(userId), noteId), {
     body,
-    title: deriveTitleFromBody(body),
+    updatedAt: now,
+  } satisfies Partial<NoteDocument>);
+}
+
+export async function updateUserNoteTitle(
+  userId: string,
+  noteId: string,
+  title: string,
+): Promise<void> {
+  const now = Date.now();
+
+  await updateDoc(doc(notesCollection(userId), noteId), {
+    title: normalizeTitle(title),
     updatedAt: now,
   } satisfies Partial<NoteDocument>);
 }

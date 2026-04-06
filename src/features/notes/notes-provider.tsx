@@ -7,6 +7,7 @@ import {
   deleteUserNote,
   subscribeToUserNotes,
   updateUserNoteBody,
+  updateUserNoteTitle,
 } from '@entities/note/api/notes.firestore';
 
 import { NotesActionsContext, NotesStateContext } from './notes-context';
@@ -24,6 +25,12 @@ type NotesAction =
       type: 'note/bodyUpdated';
       noteId: string;
       body: string;
+      updatedAt: number;
+    }
+  | {
+      type: 'note/titleUpdated';
+      noteId: string;
+      title: string;
       updatedAt: number;
     }
   | { type: 'note/deleted'; noteId: string };
@@ -55,6 +62,15 @@ function notesReducer(state: NotesState, action: NotesAction): NotesState {
         notes: state.notes.map((note) => {
           if (note.id !== action.noteId) return note;
           return { ...note, body: action.body, updatedAt: action.updatedAt };
+        }),
+      };
+    }
+    case 'note/titleUpdated': {
+      return {
+        ...state,
+        notes: state.notes.map((note) => {
+          if (note.id !== action.noteId) return note;
+          return { ...note, title: action.title, updatedAt: action.updatedAt };
         }),
       };
     }
@@ -140,6 +156,21 @@ export const NotesProvider = ({
     [userId],
   );
 
+  const updateNoteTitle = useCallback<NotesActions['updateNoteTitle']>(
+    (noteId: string, title: string) => {
+      if (userId) {
+        void updateUserNoteTitle(userId, noteId, title);
+      }
+      dispatch({
+        type: 'note/titleUpdated',
+        noteId,
+        title,
+        updatedAt: Date.now(),
+      });
+    },
+    [userId],
+  );
+
   const deleteNote = useCallback<NotesActions['deleteNote']>(
     (noteId: string) => {
       if (userId) {
@@ -156,9 +187,17 @@ export const NotesProvider = ({
       selectNote,
       setSearchQuery,
       updateNoteBody,
+      updateNoteTitle,
       deleteNote,
     };
-  }, [createNote, selectNote, setSearchQuery, updateNoteBody, deleteNote]);
+  }, [
+    createNote,
+    selectNote,
+    setSearchQuery,
+    updateNoteBody,
+    updateNoteTitle,
+    deleteNote,
+  ]);
 
   return (
     <NotesStateContext value={state}>

@@ -11,17 +11,34 @@ interface NotesWorkspaceProps {
   isEditingBody: boolean;
   draftBody: string;
   onDraftBodyChange: (body: string) => void;
+  isEditingTitle: boolean;
+  draftTitle: string;
+  onDraftTitleChange: (title: string) => void;
 }
 
 export const NotesWorkspace = (
   props: NotesWorkspaceProps,
 ): React.JSX.Element => {
-  const { selectedNote, isEditingBody, draftBody, onDraftBodyChange } = props;
+  const {
+    selectedNote,
+    isEditingBody,
+    draftBody,
+    onDraftBodyChange,
+    isEditingTitle,
+    draftTitle,
+    onDraftTitleChange,
+  } = props;
 
   const selectedNoteBody = selectedNote?.body ?? '';
 
   function handleDraftChange(event: React.ChangeEvent<HTMLInputElement>): void {
     onDraftBodyChange(event.target.value);
+  }
+
+  function handleDraftTitleChange(
+    event: React.ChangeEvent<HTMLInputElement>,
+  ): void {
+    onDraftTitleChange(event.target.value);
   }
 
   if (!selectedNote) {
@@ -35,9 +52,19 @@ export const NotesWorkspace = (
   return (
     <Box className={styles.root}>
       <div className={styles.content}>
-        <Typography variant="h4" component="h1">
-          {selectedNote.title}
-        </Typography>
+        {isEditingTitle ? (
+          <TextField
+            value={draftTitle}
+            onChange={handleDraftTitleChange}
+            placeholder="Note title"
+            fullWidth
+            size="small"
+          />
+        ) : (
+          <Typography variant="h4" component="h1">
+            {selectedNote.title}
+          </Typography>
+        )}
 
         {isEditingBody ? (
           <TextField

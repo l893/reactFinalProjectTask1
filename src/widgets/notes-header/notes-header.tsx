@@ -4,6 +4,7 @@ import {
   DeleteOutline,
   EditOutlined,
   LogoutOutlined,
+  TitleOutlined,
 } from '@mui/icons-material';
 import { IconButton, TextField, Tooltip } from '@mui/material';
 
@@ -14,9 +15,11 @@ interface NotesHeaderProps {
   searchInputElementRef: React.RefObject<HTMLInputElement | null>;
   isNoteSelected: boolean;
   isEditingBody: boolean;
+  isEditingTitle: boolean;
   onSearchQueryChange: (searchQuery: string) => void;
   onCreateNote: () => void;
   onToggleEditBody: () => void;
+  onToggleEditTitle: () => void;
   onRequestDeleteNote: () => void;
   onLogout: () => void;
 }
@@ -27,9 +30,11 @@ export const NotesHeader = (props: NotesHeaderProps): React.JSX.Element => {
     searchInputElementRef,
     isNoteSelected,
     isEditingBody,
+    isEditingTitle,
     onSearchQueryChange,
     onCreateNote,
     onToggleEditBody,
+    onToggleEditTitle,
     onRequestDeleteNote,
     onLogout,
   } = props;
@@ -61,6 +66,22 @@ export const NotesHeader = (props: NotesHeaderProps): React.JSX.Element => {
         </Tooltip>
 
         <Tooltip
+          title={isEditingTitle ? 'Finish editing title' : 'Edit note title'}
+        >
+          <span>
+            <IconButton
+              aria-label={
+                isEditingTitle ? 'Finish editing title' : 'Edit note title'
+              }
+              onClick={onToggleEditTitle}
+              disabled={!isNoteSelected || isEditingBody}
+            >
+              {isEditingTitle ? <CheckOutlined /> : <TitleOutlined />}
+            </IconButton>
+          </span>
+        </Tooltip>
+
+        <Tooltip
           title={isEditingBody ? 'Finish editing text' : 'Edit note text'}
         >
           <span>
@@ -69,7 +90,7 @@ export const NotesHeader = (props: NotesHeaderProps): React.JSX.Element => {
                 isEditingBody ? 'Finish editing text' : 'Edit note text'
               }
               onClick={onToggleEditBody}
-              disabled={!isNoteSelected}
+              disabled={!isNoteSelected || isEditingTitle}
             >
               {isEditingBody ? <CheckOutlined /> : <EditOutlined />}
             </IconButton>

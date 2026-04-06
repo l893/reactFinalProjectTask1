@@ -11,5 +11,6 @@ export interface NotesActions {
   selectNote: (noteId: string) => void;
   setSearchQuery: (searchQuery: string) => void;
   updateNoteBody: (noteId: string, body: string) => void;
+  updateNoteTitle: (noteId: string, title: string) => void;
   deleteNote: (noteId: string) => void;
 }
