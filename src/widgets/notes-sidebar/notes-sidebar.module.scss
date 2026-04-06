@@ -1,18 +1,8 @@
 .root {
   height: 100%;
-  display: grid;
-  grid-template-rows: auto 1fr;
-}
-
-.topBar {
-  padding: 12px;
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 8px;
-  align-items: center;
-  border-bottom: 1px solid #e5e7eb;
 }
 
 .list {
+  height: 100%;
   overflow: auto;
 }

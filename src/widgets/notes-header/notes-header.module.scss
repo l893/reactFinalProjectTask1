@@ -1,0 +1,24 @@
+.header {
+  display: grid;
+  grid-template-columns: 320px 1fr 320px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.left {
+  display: flex;
+}
+
+.center {
+  justify-self: center;
+  display: flex;
+  gap: 6px;
+}
+
+.right {
+  justify-self: end;
+  display: flex;
+}
