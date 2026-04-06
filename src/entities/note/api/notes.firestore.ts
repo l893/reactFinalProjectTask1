@@ -74,6 +74,26 @@ export async function updateUserNoteBody(
   noteId: string,
   body: string,
 ): Promise<void> {
+  await updateDoc(doc(notesCollection(userId), noteId), {
+    body,
+  } satisfies Partial<NoteDocument>);
+}
+
+export async function updateUserNoteTitle(
+  userId: string,
+  noteId: string,
+  title: string,
+): Promise<void> {
+  await updateDoc(doc(notesCollection(userId), noteId), {
+    title: normalizeTitle(title),
+  } satisfies Partial<NoteDocument>);
+}
+
+export async function confirmUserNoteBody(
+  userId: string,
+  noteId: string,
+  body: string,
+): Promise<void> {
   const now = Date.now();
 
   await updateDoc(doc(notesCollection(userId), noteId), {
@@ -82,7 +102,7 @@ export async function updateUserNoteBody(
   } satisfies Partial<NoteDocument>);
 }
 
-export async function updateUserNoteTitle(
+export async function confirmUserNoteTitle(
   userId: string,
   noteId: string,
   title: string,

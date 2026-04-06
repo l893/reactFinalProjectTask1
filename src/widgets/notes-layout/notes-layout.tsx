@@ -46,8 +46,10 @@ export const NotesLayout = (): React.JSX.Element => {
     deleteNote,
     selectNote,
     setSearchQuery,
-    updateNoteBody,
-    updateNoteTitle,
+    saveNoteBodyDraft,
+    confirmNoteBody,
+    saveNoteTitleDraft,
+    confirmNoteTitle,
   } = useNotesActions();
   const authActions = useAuthActions();
 
@@ -85,9 +87,17 @@ export const NotesLayout = (): React.JSX.Element => {
 
   const finalizeBodyEditing = useCallback((): void => {
     if (!editingNoteId) return;
-    updateNoteBody(editingNoteId, draftBody);
+    if (draftBody !== editingOriginalBody) {
+      confirmNoteBody(editingNoteId, draftBody);
+    }
     stopBodyEditing();
-  }, [draftBody, editingNoteId, stopBodyEditing, updateNoteBody]);
+  }, [
+    confirmNoteBody,
+    draftBody,
+    editingNoteId,
+    editingOriginalBody,
+    stopBodyEditing,
+  ]);
 
   function handleToggleEditBody(): void {
     if (!selectedNote) return;
@@ -126,21 +136,50 @@ export const NotesLayout = (): React.JSX.Element => {
     setPendingSelectedNoteId(null);
   }, [pendingSelectedNoteId, selectNote]);
 
-  function handleSavePromptYes(): void {
-    if (!editingNoteId) return;
-    updateNoteBody(editingNoteId, draftBody);
-    setIsSavePromptDialogOpen(false);
-    stopBodyEditing();
-    proceedToPendingNote();
-  }
+  // function handleSavePromptYes(): void {
+  //   if (!editingNoteId) return;
+  //   updateNoteBody(editingNoteId, draftBody);
+  //   setIsSavePromptDialogOpen(false);
+  //   stopBodyEditing();
+  //   proceedToPendingNote();
+  // }
 
-  function handleSavePromptNo(): void {
+  const handleSavePromptYes = useCallback((): void => {
     if (!editingNoteId) return;
-    updateNoteBody(editingNoteId, editingOriginalBody);
+
+    confirmNoteBody(editingNoteId, draftBody);
     setIsSavePromptDialogOpen(false);
     stopBodyEditing();
     proceedToPendingNote();
-  }
+  }, [
+    confirmNoteBody,
+    draftBody,
+    editingNoteId,
+    proceedToPendingNote,
+    stopBodyEditing,
+  ]);
+
+  // function handleSavePromptNo(): void {
+  //   if (!editingNoteId) return;
+  //   updateNoteBody(editingNoteId, editingOriginalBody);
+  //   setIsSavePromptDialogOpen(false);
+  //   stopBodyEditing();
+  //   proceedToPendingNote();
+  // }
+
+  const handleSavePromptNo = useCallback((): void => {
+    if (!editingNoteId) return;
+    saveNoteBodyDraft(editingNoteId, editingOriginalBody);
+    setIsSavePromptDialogOpen(false);
+    stopBodyEditing();
+    proceedToPendingNote();
+  }, [
+    editingOriginalBody,
+    editingNoteId,
+    proceedToPendingNote,
+    saveNoteBodyDraft,
+    stopBodyEditing,
+  ]);
 
   const handleSavePromptClose = useCallback((): void => {
     setIsSavePromptDialogOpen(false);
@@ -164,9 +203,17 @@ export const NotesLayout = (): React.JSX.Element => {
 
   const finalizeTitleEditing = useCallback((): void => {
     if (!editingTitleNoteId) return;
-    updateNoteTitle(editingTitleNoteId, draftTitle);
+    if (draftTitle !== editingOriginalTitle) {
+      confirmNoteTitle(editingTitleNoteId, draftTitle);
+    }
     stopTitleEditing();
-  }, [draftTitle, editingTitleNoteId, stopTitleEditing, updateNoteTitle]);
+  }, [
+    confirmNoteTitle,
+    draftTitle,
+    editingOriginalTitle,
+    editingTitleNoteId,
+    stopTitleEditing,
+  ]);
 
   const handleToggleEditTitle = useCallback((): void => {
     if (!selectedNote) return;
@@ -188,21 +235,21 @@ export const NotesLayout = (): React.JSX.Element => {
 
   const handleSaveTitlePromptYes = useCallback((): void => {
     if (!editingTitleNoteId) return;
-    updateNoteTitle(editingTitleNoteId, draftTitle);
+    confirmNoteTitle(editingTitleNoteId, draftTitle);
     setIsSaveTitlePromptDialogOpen(false);
     stopTitleEditing();
     proceedToPendingNote();
   }, [
+    confirmNoteTitle,
     draftTitle,
     editingTitleNoteId,
     proceedToPendingNote,
     stopTitleEditing,
-    updateNoteTitle,
   ]);
 
   const handleSaveTitlePromptNo = useCallback((): void => {
     if (!editingTitleNoteId) return;
-    updateNoteTitle(editingTitleNoteId, editingOriginalTitle);
+    saveNoteTitleDraft(editingTitleNoteId, editingOriginalTitle);
     setIsSaveTitlePromptDialogOpen(false);
     stopTitleEditing();
     proceedToPendingNote();
@@ -210,8 +257,8 @@ export const NotesLayout = (): React.JSX.Element => {
     editingOriginalTitle,
     editingTitleNoteId,
     proceedToPendingNote,
+    saveNoteTitleDraft,
     stopTitleEditing,
-    updateNoteTitle,
   ]);
 
   const hotkeys = useMemo(() => {
@@ -332,7 +379,7 @@ export const NotesLayout = (): React.JSX.Element => {
     if (isSavePromptDialogOpen) return;
     if (selectedNoteId !== editingNoteId) return;
     if (debouncedDraftBody === selectedNoteBody) return;
-    updateNoteBody(editingNoteId, debouncedDraftBody);
+    saveNoteBodyDraft(editingNoteId, debouncedDraftBody);
   }, [
     debouncedDraftBody,
     editingNoteId,
@@ -340,7 +387,7 @@ export const NotesLayout = (): React.JSX.Element => {
     isSavePromptDialogOpen,
     selectedNoteBody,
     selectedNoteId,
-    updateNoteBody,
+    saveNoteBodyDraft,
   ]);
 
   return (

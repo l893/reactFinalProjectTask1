@@ -8,6 +8,8 @@ import {
   subscribeToUserNotes,
   updateUserNoteBody,
   updateUserNoteTitle,
+  confirmUserNoteBody,
+  confirmUserNoteTitle,
 } from '@entities/note/api/notes.firestore';
 
 import { NotesActionsContext, NotesStateContext } from './notes-context';
@@ -21,14 +23,16 @@ type NotesAction =
   | { type: 'notes/received'; notes: Note[] }
   | { type: 'note/selected'; noteId: string }
   | { type: 'search/changed'; searchQuery: string }
+  | { type: 'note/bodyDraftSaved'; noteId: string; body: string }
   | {
-      type: 'note/bodyUpdated';
+      type: 'note/bodyConfirmed';
       noteId: string;
       body: string;
       updatedAt: number;
     }
+  | { type: 'note/titleDraftSaved'; noteId: string; title: string }
   | {
-      type: 'note/titleUpdated';
+      type: 'note/titleConfirmed';
       noteId: string;
       title: string;
       updatedAt: number;
@@ -56,7 +60,16 @@ function notesReducer(state: NotesState, action: NotesAction): NotesState {
     case 'search/changed': {
       return { ...state, searchQuery: action.searchQuery };
     }
-    case 'note/bodyUpdated': {
+    case 'note/bodyDraftSaved': {
+      return {
+        ...state,
+        notes: state.notes.map((note) => {
+          if (note.id !== action.noteId) return note;
+          return { ...note, body: action.body };
+        }),
+      };
+    }
+    case 'note/bodyConfirmed': {
       return {
         ...state,
         notes: state.notes.map((note) => {
@@ -65,7 +78,16 @@ function notesReducer(state: NotesState, action: NotesAction): NotesState {
         }),
       };
     }
-    case 'note/titleUpdated': {
+    case 'note/titleDraftSaved': {
+      return {
+        ...state,
+        notes: state.notes.map((note) => {
+          if (note.id !== action.noteId) return note;
+          return { ...note, title: action.title };
+        }),
+      };
+    }
+    case 'note/titleConfirmed': {
       return {
         ...state,
         notes: state.notes.map((note) => {
@@ -141,13 +163,23 @@ export const NotesProvider = ({
     [],
   );
 
-  const updateNoteBody = useCallback<NotesActions['updateNoteBody']>(
+  const saveNoteBodyDraft = useCallback<NotesActions['saveNoteBodyDraft']>(
     (noteId: string, body: string) => {
       if (userId) {
         void updateUserNoteBody(userId, noteId, body);
       }
+      dispatch({ type: 'note/bodyDraftSaved', noteId, body });
+    },
+    [userId],
+  );
+
+  const confirmNoteBody = useCallback<NotesActions['confirmNoteBody']>(
+    (noteId: string, body: string) => {
+      if (userId) {
+        void confirmUserNoteBody(userId, noteId, body);
+      }
       dispatch({
-        type: 'note/bodyUpdated',
+        type: 'note/bodyConfirmed',
         noteId,
         body,
         updatedAt: Date.now(),
@@ -156,13 +188,23 @@ export const NotesProvider = ({
     [userId],
   );
 
-  const updateNoteTitle = useCallback<NotesActions['updateNoteTitle']>(
+  const saveNoteTitleDraft = useCallback<NotesActions['saveNoteTitleDraft']>(
     (noteId: string, title: string) => {
       if (userId) {
         void updateUserNoteTitle(userId, noteId, title);
       }
+      dispatch({ type: 'note/titleDraftSaved', noteId, title });
+    },
+    [userId],
+  );
+
+  const confirmNoteTitle = useCallback<NotesActions['confirmNoteTitle']>(
+    (noteId: string, title: string) => {
+      if (userId) {
+        void confirmUserNoteTitle(userId, noteId, title);
+      }
       dispatch({
-        type: 'note/titleUpdated',
+        type: 'note/titleConfirmed',
         noteId,
         title,
         updatedAt: Date.now(),
@@ -186,16 +228,20 @@ export const NotesProvider = ({
       createNote,
       selectNote,
       setSearchQuery,
-      updateNoteBody,
-      updateNoteTitle,
+      saveNoteBodyDraft,
+      confirmNoteBody,
+      saveNoteTitleDraft,
+      confirmNoteTitle,
       deleteNote,
     };
   }, [
     createNote,
     selectNote,
     setSearchQuery,
-    updateNoteBody,
-    updateNoteTitle,
+    saveNoteBodyDraft,
+    confirmNoteBody,
+    saveNoteTitleDraft,
+    confirmNoteTitle,
     deleteNote,
   ]);
 
