@@ -2,6 +2,7 @@ import { List, ListItemButton, ListItemText } from '@mui/material';
 
 import { useNotesActions, useNotesState } from '@features/notes';
 import type { Note } from '@entities/note/model/note.types';
+import { formatNoteTimestampForList } from '@entities/note/lib/note-date';
 
 import styles from './notes-sidebar.module.scss';
 
@@ -25,6 +26,13 @@ export const NotesSidebar = (): React.JSX.Element => {
     selectNote(noteId);
   }
 
+  function getNoteSnippet(note: Note): string {
+    const trimmedBody = note.body.trim();
+    if (!trimmedBody) return 'No additional text';
+    const singleLine = trimmedBody.replace(/\s+/g, ' ');
+    return singleLine.length > 60 ? `${singleLine.slice(0, 60)}…` : singleLine;
+  }
+
   return (
     <div className={styles.root}>
       <div className={styles.list}>
@@ -37,7 +45,16 @@ export const NotesSidebar = (): React.JSX.Element => {
             >
               <ListItemText
                 primary={note.title}
-                secondary={note.body ? note.body.slice(0, 60) : 'Empty note'}
+                secondary={
+                  <span className={styles.secondaryRow}>
+                    <span className={styles.noteDate}>
+                      {formatNoteTimestampForList(note.updatedAt)}
+                    </span>
+                    <span className={styles.noteSnippet}>
+                      {getNoteSnippet(note)}
+                    </span>
+                  </span>
+                }
               />
             </ListItemButton>
           ))}

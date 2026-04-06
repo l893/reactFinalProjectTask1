@@ -6,3 +6,22 @@
   height: 100%;
   overflow: auto;
 }
+
+.secondaryRow {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.noteDate {
+  color: #6b7280;
+  font-variant-numeric: tabular-nums;
+}
+
+.noteSnippet {
+  color: #6b7280;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

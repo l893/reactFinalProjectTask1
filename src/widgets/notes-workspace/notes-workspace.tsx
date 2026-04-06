@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 import type { Note } from '@entities/note/model/note.types';
+import { formatNoteTimestampForWorkspace } from '@entities/note/lib/note-date';
 
 import styles from './notes-workspace.module.scss';
 
@@ -52,6 +53,10 @@ export const NotesWorkspace = (
   return (
     <Box className={styles.root}>
       <div className={styles.content}>
+        <Typography className={styles.dateRow} variant="body2">
+          {formatNoteTimestampForWorkspace(selectedNote.updatedAt)}
+        </Typography>
+
         {isEditingTitle ? (
           <TextField
             value={draftTitle}
