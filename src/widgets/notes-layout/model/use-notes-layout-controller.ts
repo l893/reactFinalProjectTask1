@@ -3,10 +3,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useAuthActions } from '@features/auth';
 import { useNotesActions, useNotesState } from '@features/notes';
-import { useDebouncedValue } from '@shared/hooks/use-debounced-value';
 import { useHotkeys } from '@shared/hooks/use-hotkeys';
 import { NotesHeader } from '@widgets/notes-header/notes-header';
 import { NotesWorkspace } from '@widgets/notes-workspace/notes-workspace';
+
+import { useConfirmableDraft } from './use-confirmable-draft';
 
 type NotesHeaderProps = ComponentProps<typeof NotesHeader>;
 type NotesWorkspaceProps = ComponentProps<typeof NotesWorkspace>;
@@ -30,28 +31,7 @@ export interface NotesLayoutController {
 export function useNotesLayoutController(): NotesLayoutController {
   const searchInputElementRef = useRef<HTMLInputElement | null>(null);
 
-  const [isEditingBody, setIsEditingBody] = useState<boolean>(false);
-  const [draftBody, setDraftBody] = useState<string>('');
-  const [editingBodyNoteId, setEditingBodyNoteId] = useState<string | null>(
-    null,
-  );
-  const [editingOriginalBody, setEditingOriginalBody] = useState<string>('');
-
-  const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
-  const [draftTitle, setDraftTitle] = useState<string>('');
-  const [editingTitleNoteId, setEditingTitleNoteId] = useState<string | null>(
-    null,
-  );
-  const [editingOriginalTitle, setEditingOriginalTitle] = useState<string>('');
-
-  const [pendingSelectedNoteId, setPendingSelectedNoteId] = useState<
-    string | null
-  >(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
-  const [isSaveBodyPromptDialogOpen, setIsSaveBodyPromptDialogOpen] =
-    useState<boolean>(false);
-  const [isSaveTitlePromptDialogOpen, setIsSaveTitlePromptDialogOpen] =
-    useState<boolean>(false);
 
   const { notes, selectedNoteId, searchQuery } = useNotesState();
   const {
@@ -66,10 +46,24 @@ export function useNotesLayoutController(): NotesLayoutController {
   const authActions = useAuthActions();
 
   const selectedNote = notes.find((note) => note.id === selectedNoteId) ?? null;
-  const selectedNoteBody = selectedNote?.body ?? '';
   const isNoteSelected = Boolean(selectedNote);
 
-  const debouncedDraftBody = useDebouncedValue(draftBody, 600);
+  const bodyEditor = useConfirmableDraft<string>({
+    selectedItemId: selectedNoteId,
+    onSelectItem: selectNote,
+    onConfirm: confirmNoteBody,
+    onAutoSaveDraft: saveNoteBodyDraft,
+    autoSaveDelayMs: 600,
+    onDiscard: (noteId, originalBody) => {
+      saveNoteBodyDraft(noteId, originalBody);
+    },
+  });
+
+  const titleEditor = useConfirmableDraft<string>({
+    selectedItemId: selectedNoteId,
+    onSelectItem: selectNote,
+    onConfirm: confirmNoteTitle,
+  });
 
   const focusSearchInput = useCallback((): void => {
     searchInputElementRef.current?.focus();
@@ -86,89 +80,29 @@ export function useNotesLayoutController(): NotesLayoutController {
     void authActions.signOut();
   }, [authActions]);
 
-  const beginBodyEditing = useCallback((): void => {
-    if (!selectedNote) return;
-    setEditingBodyNoteId(selectedNote.id);
-    setEditingOriginalBody(selectedNote.body);
-    setDraftBody(selectedNote.body);
-    setIsEditingBody(true);
-  }, [selectedNote]);
-
-  const stopBodyEditing = useCallback((): void => {
-    setIsEditingBody(false);
-    setEditingBodyNoteId(null);
-    setEditingOriginalBody('');
-    setDraftBody('');
-  }, []);
-
-  const finalizeBodyEditing = useCallback((): void => {
-    if (!editingBodyNoteId) return;
-    if (draftBody !== editingOriginalBody) {
-      confirmNoteBody(editingBodyNoteId, draftBody);
-    }
-    stopBodyEditing();
-  }, [
-    confirmNoteBody,
-    draftBody,
-    editingBodyNoteId,
-    editingOriginalBody,
-    stopBodyEditing,
-  ]);
-
   const handleToggleEditBody = useCallback((): void => {
     if (!selectedNote) return;
-    if (isEditingBody) {
-      finalizeBodyEditing();
+    if (titleEditor.isEditing) return;
+
+    if (bodyEditor.isEditing) {
+      bodyEditor.finishEditing();
       return;
     }
-    beginBodyEditing();
-  }, [beginBodyEditing, finalizeBodyEditing, isEditingBody, selectedNote]);
 
-  const handleDraftBodyChange = useCallback((nextBody: string): void => {
-    setDraftBody(nextBody);
-  }, []);
-
-  const beginTitleEditing = useCallback((): void => {
-    if (!selectedNote) return;
-    setEditingTitleNoteId(selectedNote.id);
-    setEditingOriginalTitle(selectedNote.title);
-    setDraftTitle(selectedNote.title);
-    setIsEditingTitle(true);
-  }, [selectedNote]);
-
-  const stopTitleEditing = useCallback((): void => {
-    setIsEditingTitle(false);
-    setEditingTitleNoteId(null);
-    setEditingOriginalTitle('');
-    setDraftTitle('');
-  }, []);
-
-  const finalizeTitleEditing = useCallback((): void => {
-    if (!editingTitleNoteId) return;
-    if (draftTitle !== editingOriginalTitle) {
-      confirmNoteTitle(editingTitleNoteId, draftTitle);
-    }
-    stopTitleEditing();
-  }, [
-    confirmNoteTitle,
-    draftTitle,
-    editingOriginalTitle,
-    editingTitleNoteId,
-    stopTitleEditing,
-  ]);
+    bodyEditor.startEditing(selectedNote.id, selectedNote.body);
+  }, [bodyEditor, selectedNote, titleEditor.isEditing]);
 
   const handleToggleEditTitle = useCallback((): void => {
     if (!selectedNote) return;
-    if (isEditingTitle) {
-      finalizeTitleEditing();
+    if (bodyEditor.isEditing) return;
+
+    if (titleEditor.isEditing) {
+      titleEditor.finishEditing();
       return;
     }
-    beginTitleEditing();
-  }, [beginTitleEditing, finalizeTitleEditing, isEditingTitle, selectedNote]);
 
-  const handleDraftTitleChange = useCallback((nextTitle: string): void => {
-    setDraftTitle(nextTitle);
-  }, []);
+    titleEditor.startEditing(selectedNote.id, selectedNote.title);
+  }, [bodyEditor.isEditing, selectedNote, titleEditor]);
 
   const requestDeleteNote = useCallback((): void => {
     if (!selectedNote) return;
@@ -183,77 +117,33 @@ export function useNotesLayoutController(): NotesLayoutController {
     if (!selectedNote) return;
     deleteNote(selectedNote.id);
     setIsDeleteDialogOpen(false);
-    setIsSaveBodyPromptDialogOpen(false);
-    setIsSaveTitlePromptDialogOpen(false);
-    setPendingSelectedNoteId(null);
-    stopBodyEditing();
-    stopTitleEditing();
-  }, [deleteNote, selectedNote, stopBodyEditing, stopTitleEditing]);
-
-  const proceedToPendingNote = useCallback((): void => {
-    if (!pendingSelectedNoteId) return;
-    selectNote(pendingSelectedNoteId);
-    setPendingSelectedNoteId(null);
-  }, [pendingSelectedNoteId, selectNote]);
+    bodyEditor.stopEditing();
+    titleEditor.stopEditing();
+  }, [bodyEditor, deleteNote, selectedNote, titleEditor]);
 
   const closeSaveBodyPromptDialog = useCallback((): void => {
-    setIsSaveBodyPromptDialogOpen(false);
-    setPendingSelectedNoteId(null);
-  }, []);
+    bodyEditor.prompt.close();
+  }, [bodyEditor.prompt]);
 
   const confirmSaveBodyPromptYes = useCallback((): void => {
-    if (!editingBodyNoteId) return;
-    confirmNoteBody(editingBodyNoteId, draftBody);
-    setIsSaveBodyPromptDialogOpen(false);
-    stopBodyEditing();
-    proceedToPendingNote();
-  }, [
-    confirmNoteBody,
-    draftBody,
-    editingBodyNoteId,
-    proceedToPendingNote,
-    stopBodyEditing,
-  ]);
+    bodyEditor.prompt.confirmYes();
+  }, [bodyEditor.prompt]);
 
   const confirmSaveBodyPromptNo = useCallback((): void => {
-    if (!editingBodyNoteId) return;
-    saveNoteBodyDraft(editingBodyNoteId, editingOriginalBody);
-    setIsSaveBodyPromptDialogOpen(false);
-    stopBodyEditing();
-    proceedToPendingNote();
-  }, [
-    editingBodyNoteId,
-    editingOriginalBody,
-    proceedToPendingNote,
-    saveNoteBodyDraft,
-    stopBodyEditing,
-  ]);
+    bodyEditor.prompt.confirmNo();
+  }, [bodyEditor.prompt]);
 
   const closeSaveTitlePromptDialog = useCallback((): void => {
-    setIsSaveTitlePromptDialogOpen(false);
-    setPendingSelectedNoteId(null);
-  }, []);
+    titleEditor.prompt.close();
+  }, [titleEditor.prompt]);
 
   const confirmSaveTitlePromptYes = useCallback((): void => {
-    if (!editingTitleNoteId) return;
-    confirmNoteTitle(editingTitleNoteId, draftTitle);
-    setIsSaveTitlePromptDialogOpen(false);
-    stopTitleEditing();
-    proceedToPendingNote();
-  }, [
-    confirmNoteTitle,
-    draftTitle,
-    editingTitleNoteId,
-    proceedToPendingNote,
-    stopTitleEditing,
-  ]);
+    titleEditor.prompt.confirmYes();
+  }, [titleEditor.prompt]);
 
   const confirmSaveTitlePromptNo = useCallback((): void => {
-    if (!editingTitleNoteId) return;
-    setIsSaveTitlePromptDialogOpen(false);
-    stopTitleEditing();
-    proceedToPendingNote();
-  }, [editingTitleNoteId, proceedToPendingNote, stopTitleEditing]);
+    titleEditor.prompt.confirmNo();
+  }, [titleEditor.prompt]);
 
   const hotkeys = useMemo(() => {
     return [
@@ -267,39 +157,33 @@ export function useNotesLayoutController(): NotesLayoutController {
             return;
           }
 
-          if (isSaveBodyPromptDialogOpen) {
-            closeSaveBodyPromptDialog();
+          if (bodyEditor.prompt.isOpen) {
+            bodyEditor.prompt.close();
             return;
           }
 
-          if (isSaveTitlePromptDialogOpen) {
-            closeSaveTitlePromptDialog();
+          if (titleEditor.prompt.isOpen) {
+            titleEditor.prompt.close();
             return;
           }
 
-          if (isEditingBody) {
-            finalizeBodyEditing();
+          if (bodyEditor.isEditing) {
+            bodyEditor.finishEditing();
             return;
           }
 
-          if (isEditingTitle) {
-            finalizeTitleEditing();
+          if (titleEditor.isEditing) {
+            titleEditor.finishEditing();
           }
         },
       },
     ];
   }, [
-    closeSaveBodyPromptDialog,
-    closeSaveTitlePromptDialog,
+    bodyEditor,
     createNote,
-    finalizeBodyEditing,
-    finalizeTitleEditing,
     focusSearchInput,
     isDeleteDialogOpen,
-    isEditingBody,
-    isEditingTitle,
-    isSaveBodyPromptDialogOpen,
-    isSaveTitlePromptDialogOpen,
+    titleEditor,
   ]);
 
   useHotkeys(hotkeys);
@@ -308,80 +192,12 @@ export function useNotesLayoutController(): NotesLayoutController {
     setIsDeleteDialogOpen(false);
   }, [selectedNoteId]);
 
-  useEffect(() => {
-    if (!isEditingBody) return;
-    if (!editingBodyNoteId) return;
-    if (!selectedNoteId) return;
-    if (selectedNoteId === editingBodyNoteId) return;
-
-    const hasUnsavedDraft = draftBody !== editingOriginalBody;
-
-    if (hasUnsavedDraft) {
-      setPendingSelectedNoteId(selectedNoteId);
-      setIsSaveBodyPromptDialogOpen(true);
-      selectNote(editingBodyNoteId);
-      return;
-    }
-
-    stopBodyEditing();
-  }, [
-    draftBody,
-    editingBodyNoteId,
-    editingOriginalBody,
-    isEditingBody,
-    selectedNoteId,
-    selectNote,
-    stopBodyEditing,
-  ]);
-
-  useEffect(() => {
-    if (!isEditingTitle) return;
-    if (!editingTitleNoteId) return;
-    if (!selectedNoteId) return;
-    if (selectedNoteId === editingTitleNoteId) return;
-
-    const hasUnsavedTitleDraft = draftTitle !== editingOriginalTitle;
-    if (hasUnsavedTitleDraft) {
-      setPendingSelectedNoteId(selectedNoteId);
-      setIsSaveTitlePromptDialogOpen(true);
-      selectNote(editingTitleNoteId);
-      return;
-    }
-
-    stopTitleEditing();
-  }, [
-    draftTitle,
-    editingOriginalTitle,
-    editingTitleNoteId,
-    isEditingTitle,
-    selectedNoteId,
-    selectNote,
-    stopTitleEditing,
-  ]);
-
-  useEffect(() => {
-    if (!isEditingBody) return;
-    if (!editingBodyNoteId) return;
-    if (isSaveBodyPromptDialogOpen) return;
-    if (selectedNoteId !== editingBodyNoteId) return;
-    if (debouncedDraftBody === selectedNoteBody) return;
-    saveNoteBodyDraft(editingBodyNoteId, debouncedDraftBody);
-  }, [
-    debouncedDraftBody,
-    editingBodyNoteId,
-    isEditingBody,
-    isSaveBodyPromptDialogOpen,
-    saveNoteBodyDraft,
-    selectedNoteBody,
-    selectedNoteId,
-  ]);
-
   const headerProps: NotesHeaderProps = {
     searchQuery,
     searchInputElementRef,
     isNoteSelected,
-    isEditingBody,
-    isEditingTitle,
+    isEditingBody: bodyEditor.isEditing,
+    isEditingTitle: titleEditor.isEditing,
     onSearchQueryChange: handleSearchQueryChange,
     onCreateNote: createNote,
     onToggleEditBody: handleToggleEditBody,
@@ -392,20 +208,20 @@ export function useNotesLayoutController(): NotesLayoutController {
 
   const workspaceProps: NotesWorkspaceProps = {
     selectedNote,
-    isEditingBody,
-    draftBody,
-    onDraftBodyChange: handleDraftBodyChange,
-    isEditingTitle,
-    draftTitle,
-    onDraftTitleChange: handleDraftTitleChange,
+    isEditingBody: bodyEditor.isEditing,
+    draftBody: bodyEditor.draftValue,
+    onDraftBodyChange: bodyEditor.setDraftValue,
+    isEditingTitle: titleEditor.isEditing,
+    draftTitle: titleEditor.draftValue,
+    onDraftTitleChange: titleEditor.setDraftValue,
   };
 
   return {
     headerProps,
     workspaceProps,
     isDeleteDialogOpen,
-    isSaveBodyPromptDialogOpen,
-    isSaveTitlePromptDialogOpen,
+    isSaveBodyPromptDialogOpen: bodyEditor.prompt.isOpen,
+    isSaveTitlePromptDialogOpen: titleEditor.prompt.isOpen,
     closeDeleteDialog,
     confirmDeleteNote,
     closeSaveBodyPromptDialog,
