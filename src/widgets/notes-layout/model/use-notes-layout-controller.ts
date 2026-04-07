@@ -79,7 +79,9 @@ export function useNotesLayoutController(): NotesLayoutController {
   );
 
   const handleLogout = useCallback((): void => {
-    void authActions.signOut();
+    void authActions.signOut().catch((error) => {
+      console.error('[Auth] Sign out failed:', error);
+    });
   }, [authActions]);
 
   const handleToggleEditBody = useCallback((): void => {

@@ -40,29 +40,35 @@ export function subscribeToUserNotes(
     orderBy('updatedAt', 'desc'),
   );
 
-  return onSnapshot(notesQuery, (snapshot) => {
-    const notes: Note[] = snapshot.docs.map((documentSnapshot) => {
-      const data = documentSnapshot.data() as NoteDocument;
+  return onSnapshot(
+    notesQuery,
+    (snapshot) => {
+      const notes: Note[] = snapshot.docs.map((documentSnapshot) => {
+        const data = documentSnapshot.data() as NoteDocument;
 
-      const createdAt =
-        typeof data.createdAt === 'number' ? data.createdAt : Date.now();
-      const updatedAt =
-        typeof data.updatedAt === 'number' ? data.updatedAt : createdAt;
+        const createdAt =
+          typeof data.createdAt === 'number' ? data.createdAt : Date.now();
+        const updatedAt =
+          typeof data.updatedAt === 'number' ? data.updatedAt : createdAt;
 
-      return {
-        id: documentSnapshot.id,
-        title:
-          typeof data.title === 'string' && data.title.trim()
-            ? data.title
-            : 'New note',
-        body: typeof data.body === 'string' ? data.body : '',
-        createdAt,
-        updatedAt,
-      };
-    });
+        return {
+          id: documentSnapshot.id,
+          title:
+            typeof data.title === 'string' && data.title.trim()
+              ? data.title
+              : 'New note',
+          body: typeof data.body === 'string' ? data.body : '',
+          createdAt,
+          updatedAt,
+        };
+      });
 
-    onNotes(notes);
-  });
+      onNotes(notes);
+    },
+    (error) => {
+      console.error('[Firestore] subscribeToUserNotes failed:', error);
+    },
+  );
 }
 
 export async function createUserNote(userId: string): Promise<string> {

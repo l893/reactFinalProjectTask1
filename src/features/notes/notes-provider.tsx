@@ -19,6 +19,15 @@ interface NotesProviderProps {
   children: React.ReactNode;
 }
 
+function runNotesOperation<T>(
+  promise: Promise<T>,
+  operationName: string,
+): void {
+  void promise.catch((error) => {
+    console.error(`[Notes] ${operationName} failed:`, error);
+  });
+}
+
 type NotesAction =
   | { type: 'notes/received'; notes: Note[] }
   | { type: 'note/selected'; noteId: string }
@@ -143,10 +152,12 @@ export const NotesProvider = ({
   const createNote = useCallback<NotesActions['createNote']>(() => {
     if (!userId) return;
 
-    void (async () => {
-      const newNoteId = await createUserNote(userId);
-      dispatch({ type: 'note/selected', noteId: newNoteId });
-    })();
+    runNotesOperation(
+      createUserNote(userId).then((newNoteId) => {
+        dispatch({ type: 'note/selected', noteId: newNoteId });
+      }),
+      'create note',
+    );
   }, [userId]);
 
   const selectNote = useCallback<NotesActions['selectNote']>(
@@ -166,7 +177,10 @@ export const NotesProvider = ({
   const saveNoteBodyDraft = useCallback<NotesActions['saveNoteBodyDraft']>(
     (noteId: string, body: string) => {
       if (userId) {
-        void updateUserNoteBody(userId, noteId, body);
+        runNotesOperation(
+          updateUserNoteBody(userId, noteId, body),
+          'save note body draft',
+        );
       }
       dispatch({ type: 'note/bodyDraftSaved', noteId, body });
     },
@@ -177,7 +191,10 @@ export const NotesProvider = ({
     (noteId: string, body: string) => {
       const confirmedAt = Date.now();
       if (userId) {
-        void confirmUserNoteBody(userId, noteId, body, confirmedAt);
+        runNotesOperation(
+          confirmUserNoteBody(userId, noteId, body, confirmedAt),
+          'confirm note body',
+        );
       }
       dispatch({
         type: 'note/bodyConfirmed',
@@ -192,7 +209,10 @@ export const NotesProvider = ({
   const saveNoteTitleDraft = useCallback<NotesActions['saveNoteTitleDraft']>(
     (noteId: string, title: string) => {
       if (userId) {
-        void updateUserNoteTitle(userId, noteId, title);
+        runNotesOperation(
+          updateUserNoteTitle(userId, noteId, title),
+          'save note title draft',
+        );
       }
       dispatch({ type: 'note/titleDraftSaved', noteId, title });
     },
@@ -203,7 +223,10 @@ export const NotesProvider = ({
     (noteId: string, title: string) => {
       const confirmedAt = Date.now();
       if (userId) {
-        void confirmUserNoteTitle(userId, noteId, title, confirmedAt);
+        runNotesOperation(
+          confirmUserNoteTitle(userId, noteId, title, confirmedAt),
+          'confirm note title',
+        );
       }
       dispatch({
         type: 'note/titleConfirmed',
@@ -218,7 +241,7 @@ export const NotesProvider = ({
   const deleteNote = useCallback<NotesActions['deleteNote']>(
     (noteId: string) => {
       if (userId) {
-        void deleteUserNote(userId, noteId);
+        runNotesOperation(deleteUserNote(userId, noteId), 'delete note');
       }
       dispatch({ type: 'note/deleted', noteId });
     },
