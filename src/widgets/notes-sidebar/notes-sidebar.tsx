@@ -27,7 +27,7 @@ export const NotesSidebar = (): React.JSX.Element => {
   }
 
   function getNoteSnippet(note: Note): string {
-    const trimmedBody = note.body.trim();
+    const trimmedBody = (note.body ?? '').trim();
     if (!trimmedBody) return 'No additional text';
     const singleLine = trimmedBody.replace(/\s+/g, ' ');
     return singleLine.length > 60 ? `${singleLine.slice(0, 60)}…` : singleLine;

@@ -13,10 +13,10 @@ import { getFirebaseFirestore } from '@shared/lib/firebase/firebase-firestore';
 import type { Note } from '../model/note.types';
 
 interface NoteDocument {
-  title: string;
-  body: string;
-  createdAt: number;
-  updatedAt: number;
+  title?: unknown;
+  body?: unknown;
+  createdAt?: unknown;
+  updatedAt?: unknown;
 }
 
 function notesCollection(userId: string) {
@@ -43,12 +43,21 @@ export function subscribeToUserNotes(
   return onSnapshot(notesQuery, (snapshot) => {
     const notes: Note[] = snapshot.docs.map((documentSnapshot) => {
       const data = documentSnapshot.data() as NoteDocument;
+
+      const createdAt =
+        typeof data.createdAt === 'number' ? data.createdAt : Date.now();
+      const updatedAt =
+        typeof data.updatedAt === 'number' ? data.updatedAt : createdAt;
+
       return {
         id: documentSnapshot.id,
-        title: data.title,
-        body: data.body,
-        createdAt: data.createdAt,
-        updatedAt: data.updatedAt,
+        title:
+          typeof data.title === 'string' && data.title.trim()
+            ? data.title
+            : 'New note',
+        body: typeof data.body === 'string' ? data.body : '',
+        createdAt,
+        updatedAt,
       };
     });
 

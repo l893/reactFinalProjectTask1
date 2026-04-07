@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDebouncedValue } from '@shared/hooks/use-debounced-value';
 
 export interface ConfirmableDraftOptions<TValue> {
+  initialDraftValue: TValue;
   selectedItemId: string | null;
   onSelectItem: (itemId: string) => void;
   onConfirm: (itemId: string, value: TValue) => void;
@@ -32,6 +33,7 @@ export function useConfirmableDraft<TValue>(
   options: ConfirmableDraftOptions<TValue>,
 ): ConfirmableDraftController<TValue> {
   const {
+    initialDraftValue,
     selectedItemId,
     onSelectItem,
     onConfirm,
@@ -45,9 +47,7 @@ export function useConfirmableDraft<TValue>(
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [originalValue, setOriginalValue] = useState<TValue | null>(null);
-  const [draftValue, setDraftValueState] = useState<TValue>(() => {
-    return undefined as TValue;
-  });
+  const [draftValue, setDraftValueState] = useState<TValue>(initialDraftValue);
 
   const [isPromptOpen, setIsPromptOpen] = useState<boolean>(false);
   const [pendingSelectedItemId, setPendingSelectedItemId] = useState<
@@ -60,10 +60,11 @@ export function useConfirmableDraft<TValue>(
     setIsEditing(false);
     setEditingItemId(null);
     setOriginalValue(null);
+    setDraftValueState(initialDraftValue);
     setIsPromptOpen(false);
     setPendingSelectedItemId(null);
     lastAutoSavedValueRef.current = null;
-  }, []);
+  }, [initialDraftValue]);
 
   const startEditing = useCallback(
     (itemId: string, initialValue: TValue): void => {

@@ -49,6 +49,7 @@ export function useNotesLayoutController(): NotesLayoutController {
   const isNoteSelected = Boolean(selectedNote);
 
   const bodyEditor = useConfirmableDraft<string>({
+    initialDraftValue: '',
     selectedItemId: selectedNoteId,
     onSelectItem: selectNote,
     onConfirm: confirmNoteBody,
@@ -60,6 +61,7 @@ export function useNotesLayoutController(): NotesLayoutController {
   });
 
   const titleEditor = useConfirmableDraft<string>({
+    initialDraftValue: 'New note',
     selectedItemId: selectedNoteId,
     onSelectItem: selectNote,
     onConfirm: confirmNoteTitle,
