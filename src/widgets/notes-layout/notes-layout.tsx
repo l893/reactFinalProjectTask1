@@ -1,13 +1,8 @@
 import { NotesSidebar } from '@widgets/notes-sidebar/notes-sidebar';
 import { NotesWorkspace } from '@widgets/notes-workspace/notes-workspace';
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Typography,
-} from '@mui/material';
+import { DeleteNoteDialog } from './ui/delete-note-dialog';
+import { SaveNoteTextDialog } from './ui/save-note-text-dialog';
+import { SaveNoteTitleDialog } from './ui/save-note-title-dialog';
 import { NotesHeader } from '@widgets/notes-header/notes-header';
 import { useNotesLayoutController } from './model/use-notes-layout-controller';
 
@@ -29,65 +24,25 @@ export const NotesLayout = (): React.JSX.Element => {
         </section>
       </div>
 
-      <Dialog
-        open={notesLayoutController.isDeleteDialogOpen}
-        onClose={notesLayoutController.closeDeleteDialog}
-      >
-        <DialogTitle>Delete note?</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2">This action cannot be undone.</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={notesLayoutController.closeDeleteDialog}>
-            Cancel
-          </Button>
-          <Button
-            color="error"
-            variant="contained"
-            onClick={notesLayoutController.confirmDeleteNote}
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <DeleteNoteDialog
+        isOpen={notesLayoutController.isDeleteDialogOpen}
+        onCancel={notesLayoutController.closeDeleteDialog}
+        onConfirm={notesLayoutController.confirmDeleteNote}
+      />
 
-      <Dialog
-        open={notesLayoutController.isSaveBodyPromptDialogOpen}
+      <SaveNoteTextDialog
+        isOpen={notesLayoutController.isSaveBodyPromptDialogOpen}
         onClose={notesLayoutController.closeSaveBodyPromptDialog}
-        disableEscapeKeyDown
-      >
-        <DialogTitle>Save note text?</DialogTitle>
-        <DialogActions>
-          <Button onClick={notesLayoutController.confirmSaveBodyPromptNo}>
-            No
-          </Button>
-          <Button
-            variant="contained"
-            onClick={notesLayoutController.confirmSaveBodyPromptYes}
-          >
-            Yes
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onNo={notesLayoutController.confirmSaveBodyPromptNo}
+        onYes={notesLayoutController.confirmSaveBodyPromptYes}
+      />
 
-      <Dialog
-        open={notesLayoutController.isSaveTitlePromptDialogOpen}
+      <SaveNoteTitleDialog
+        isOpen={notesLayoutController.isSaveTitlePromptDialogOpen}
         onClose={notesLayoutController.closeSaveTitlePromptDialog}
-        disableEscapeKeyDown
-      >
-        <DialogTitle>Save note title?</DialogTitle>
-        <DialogActions>
-          <Button onClick={notesLayoutController.confirmSaveTitlePromptNo}>
-            No
-          </Button>
-          <Button
-            variant="contained"
-            onClick={notesLayoutController.confirmSaveTitlePromptYes}
-          >
-            Yes
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onNo={notesLayoutController.confirmSaveTitlePromptNo}
+        onYes={notesLayoutController.confirmSaveTitlePromptYes}
+      />
     </div>
   );
 };
