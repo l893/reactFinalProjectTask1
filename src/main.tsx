@@ -16,6 +16,19 @@ if (!rootElement) {
 
 void enableFirestorePersistence();
 
+function registerServiceWorker(): void {
+  if (!import.meta.env.PROD) return;
+  if (!('serviceWorker' in navigator)) return;
+
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((error) => {
+      console.error('[PWA] Service worker registration failed:', error);
+    });
+  });
+}
+
+registerServiceWorker();
+
 createRoot(rootElement).render(
   <StrictMode>
     <ThemeProvider theme={appTheme}>
