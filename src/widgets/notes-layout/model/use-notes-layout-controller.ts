@@ -8,11 +8,13 @@ import { NotesHeader } from '@widgets/notes-header/notes-header';
 import { NotesWorkspace } from '@widgets/notes-workspace/notes-workspace';
 
 import { useConfirmableDraft } from './use-confirmable-draft';
+import { useOnlineStatus } from '@shared/hooks/use-online-status';
 
 type NotesHeaderProps = ComponentProps<typeof NotesHeader>;
 type NotesWorkspaceProps = ComponentProps<typeof NotesWorkspace>;
 
 export interface NotesLayoutController {
+  isOnline: boolean;
   headerProps: NotesHeaderProps;
   workspaceProps: NotesWorkspaceProps;
   isDeleteDialogOpen: boolean;
@@ -34,6 +36,7 @@ export function useNotesLayoutController(): NotesLayoutController {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
 
   const { notes, selectedNoteId, searchQuery } = useNotesState();
+  const isOnline = useOnlineStatus();
   const {
     createNote,
     deleteNote,
@@ -221,6 +224,7 @@ export function useNotesLayoutController(): NotesLayoutController {
   };
 
   return {
+    isOnline,
     headerProps,
     workspaceProps,
     isDeleteDialogOpen,

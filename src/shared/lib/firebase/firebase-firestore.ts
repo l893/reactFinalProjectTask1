@@ -1,6 +1,7 @@
 import {
   enableIndexedDbPersistence,
   getFirestore,
+  setLogLevel,
   type Firestore,
 } from 'firebase/firestore';
 
@@ -12,6 +13,9 @@ let isPersistenceRequested = false;
 export function getFirebaseFirestore(): Firestore {
   if (firestoreInstance) return firestoreInstance;
   firestoreInstance = getFirestore(getFirebaseApp());
+
+  setLogLevel('error');
+
   return firestoreInstance;
 }
 

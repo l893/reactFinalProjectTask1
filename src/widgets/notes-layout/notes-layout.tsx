@@ -3,6 +3,7 @@ import { NotesWorkspace } from '@widgets/notes-workspace/notes-workspace';
 import { DeleteNoteDialog } from './ui/delete-note-dialog';
 import { SaveNoteTextDialog } from './ui/save-note-text-dialog';
 import { SaveNoteTitleDialog } from './ui/save-note-title-dialog';
+import { OfflineBanner } from '@shared/ui/offline-banner/offline-banner';
 import { NotesHeader } from '@widgets/notes-header/notes-header';
 import { useNotesLayoutController } from './model/use-notes-layout-controller';
 
@@ -13,6 +14,7 @@ export const NotesLayout = (): React.JSX.Element => {
 
   return (
     <div className={styles.layout}>
+      <OfflineBanner isOnline={notesLayoutController.isOnline} />
       <NotesHeader {...notesLayoutController.headerProps} />
 
       <div className={styles.main}>

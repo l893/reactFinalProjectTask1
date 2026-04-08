@@ -5,6 +5,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import { App } from '@app/app';
 import { appTheme } from '@shared/theme/theme';
 import { enableFirestorePersistence } from '@shared/lib/firebase/firebase-firestore';
+import { ErrorBoundary } from '@shared/ui/error-boundary';
 import './normalize.css';
 import './index.css';
 
@@ -33,7 +34,9 @@ createRoot(rootElement).render(
   <StrictMode>
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
-      <App />
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
     </ThemeProvider>
   </StrictMode>,
 );

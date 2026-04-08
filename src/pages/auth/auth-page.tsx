@@ -10,6 +10,7 @@ import {
 
 import { useAuthActions, useAuthState } from '@features/auth';
 import type { AuthCredentials } from '@features/auth';
+import { useOnlineStatus } from '@shared/hooks/use-online-status';
 
 type LocationState = {
   from?: { pathname: string; search?: string };
@@ -33,6 +34,7 @@ export const AuthPage = (): React.JSX.Element => {
 
   const { isAuthenticated, isAuthReady } = useAuthState();
   const authActions = useAuthActions();
+  const isOnline = useOnlineStatus();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -77,6 +79,13 @@ export const AuthPage = (): React.JSX.Element => {
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
     event.preventDefault();
+
+    if (!isOnline) {
+      setFormErrorMessage(
+        'You are offline. Sign in requires an internet connection.',
+      );
+      return;
+    }
 
     const emailValue = formValues.email.trim();
     const passwordValue = formValues.password.trim();
@@ -143,9 +152,19 @@ export const AuthPage = (): React.JSX.Element => {
           </Typography>
         ) : null}
 
-        <Button type="submit" variant="contained" disabled={isSubmitting}>
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={isSubmitting || !isOnline}
+        >
           {isSubmitting ? 'Signing in...' : 'Continue'}
         </Button>
+
+        {!isOnline ? (
+          <Typography variant="caption" color="text.secondary">
+            Offline mode: authentication is unavailable.
+          </Typography>
+        ) : null}
       </Box>
     </Box>
   );

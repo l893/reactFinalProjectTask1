@@ -87,7 +87,9 @@ async function staleWhileRevalidate(request) {
     })
     .catch(() => undefined);
 
-  return cachedResponse ?? (await fetchPromise) ?? fetch(request);
+  return (
+    cachedResponse ?? (await fetchPromise) ?? cachedResponse ?? Response.error()
+  );
 }
 
 self.addEventListener('fetch', (event) => {
@@ -95,6 +97,17 @@ self.addEventListener('fetch', (event) => {
 
   if (request.method !== 'GET') return;
   if (!isSameOrigin(request.url)) return;
+
+  async function cacheFirst(requestToHandle) {
+    const cachedResponse = await caches.match(requestToHandle);
+    if (cachedResponse) return cachedResponse;
+
+    const networkResponse = await fetch(requestToHandle);
+    const cache = await caches.open(RUNTIME_CACHE);
+    await cache.put(requestToHandle, networkResponse.clone());
+    await trimCache(RUNTIME_CACHE, 80);
+    return networkResponse;
+  }
 
   if (request.mode === 'navigate') {
     event.respondWith(networkFirstNavigation(request));
@@ -106,8 +119,12 @@ self.addEventListener('fetch', (event) => {
     destination === 'script' ||
     destination === 'style' ||
     destination === 'image' ||
-    destination === 'font'
+    destination === 'font' ||
+    destination === 'manifest'
   ) {
     event.respondWith(staleWhileRevalidate(request));
+    return;
   }
+
+  event.respondWith(cacheFirst(request));
 });
