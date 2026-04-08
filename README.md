@@ -172,3 +172,9 @@ npm run preview
 - DevTools → Application → Service Workers
 - Offline → refresh
 - если было посещение онлайн → app shell и ранее загруженные данные доступны
+
+### Deploy (Firebase Hosting)
+
+- `firebase.json` настроен под SPA rewrites (`/** -> /index.html`)
+- Сборка: `npm run build`
+- Деплой: `firebase deploy`
