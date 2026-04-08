@@ -30,6 +30,15 @@ function isSameOrigin(requestUrl) {
   return new URL(requestUrl).origin === self.location.origin;
 }
 
+function isManifestRequest(request) {
+  const url = new URL(request.url);
+  return (
+    request.destination === 'manifest' ||
+    url.pathname === '/site.webmanifest' ||
+    url.pathname.endsWith('.webmanifest')
+  );
+}
+
 async function trimCache(cacheName, maxEntries) {
   const cache = await caches.open(cacheName);
   const keys = await cache.keys();
@@ -88,7 +97,7 @@ async function staleWhileRevalidate(request) {
     .catch(() => undefined);
 
   return (
-    cachedResponse ?? (await fetchPromise) ?? cachedResponse ?? Response.error()
+    cachedResponse ?? (await fetchPromise) ?? new Response('', { status: 504 })
   );
 }
 
@@ -102,11 +111,36 @@ self.addEventListener('fetch', (event) => {
     const cachedResponse = await caches.match(requestToHandle);
     if (cachedResponse) return cachedResponse;
 
-    const networkResponse = await fetch(requestToHandle);
-    const cache = await caches.open(RUNTIME_CACHE);
-    await cache.put(requestToHandle, networkResponse.clone());
-    await trimCache(RUNTIME_CACHE, 80);
-    return networkResponse;
+    try {
+      const networkResponse = await fetch(requestToHandle);
+      const cache = await caches.open(RUNTIME_CACHE);
+      await cache.put(requestToHandle, networkResponse.clone());
+      await trimCache(RUNTIME_CACHE, 80);
+      return networkResponse;
+    } catch {
+      return new Response('', { status: 503 });
+    }
+  }
+
+  if (isManifestRequest(request)) {
+    event.respondWith(
+      (async () => {
+        const cached =
+          (await caches.match('/site.webmanifest')) ??
+          (await caches.match(request));
+        if (cached) return cached;
+
+        try {
+          const response = await fetch(request);
+          const cache = await caches.open(STATIC_CACHE);
+          await cache.put('/site.webmanifest', response.clone());
+          return response;
+        } catch {
+          return new Response('', { status: 503 });
+        }
+      })(),
+    );
+    return;
   }
 
   if (request.mode === 'navigate') {
