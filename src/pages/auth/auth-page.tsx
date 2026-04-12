@@ -3,16 +3,7 @@ import { Box, CircularProgress, Typography } from '@mui/material';
 
 import { useAuthState, SignInForm } from '@features/auth';
 
-type LocationState = {
-  from?: { pathname: string; search?: string };
-};
-
-function getRedirectPath(locationState: unknown): string {
-  const typedState = locationState as LocationState | null;
-  const from = typedState?.from;
-  if (!from?.pathname) return '/notes';
-  return `${from.pathname}${from.search ?? ''}`;
-}
+import { getRedirectPath } from '@features/auth';
 
 export const AuthPage = (): React.JSX.Element => {
   const { isAuthenticated, isAuthReady } = useAuthState();
