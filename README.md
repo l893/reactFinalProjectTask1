@@ -117,8 +117,14 @@
 - `src/pages/` — страницы (`auth`, `notes`, `not-found`)
 - `src/widgets/` — крупные UI-блоки (header/layout/sidebar/workspace)
 - `src/features/` — фичи (auth, notes, libs)
+- `src/features/auth/model/*` — provider/context/types/require-auth
+- `src/features/auth/ui/*` — `SignInForm`
+- `src/features/auth/lib/*` — `getRedirectPath`
+- `src/features/notes/model/*` — provider/context/types
+- `src/features/notes/lib/*` — `filterNotes`, `getNoteSnippet`
 - `src/entities/` — доменная сущность `note` (api/model/lib)
 - `src/shared/` — общие хуки, firebase init, тема, утилиты
+- `src/shared/lib/type-guards/*` — isString/isNumber/isRecord/getErrorMessage/isNonEmptyString
 
 Алиасы: `@app`, `@pages`, `@widgets`, `@features`, `@entities`, `@shared`.
 
