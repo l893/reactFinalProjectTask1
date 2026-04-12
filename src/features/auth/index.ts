@@ -1,4 +1,9 @@
-export { AuthProvider } from './auth-provider';
-export { RequireAuth } from './require-auth';
-export { useAuthActions, useAuthState } from './auth-context';
-export type { AuthActions, AuthCredentials, AuthState } from './auth.types';
+export { AuthProvider } from './model/auth-provider';
+export { RequireAuth } from './model/require-auth';
+export { useAuthActions, useAuthState } from './/model/auth-context';
+export type {
+  AuthActions,
+  AuthCredentials,
+  AuthState,
+} from './model/auth.types';
+export { SignInForm } from './ui/sign-in-form';

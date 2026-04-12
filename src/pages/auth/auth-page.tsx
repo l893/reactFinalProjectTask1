@@ -1,16 +1,7 @@
-import { useState } from 'react';
 import { useLocation, useNavigate, Navigate } from 'react-router-dom';
-import {
-  Box,
-  Button,
-  CircularProgress,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Box, CircularProgress, Typography } from '@mui/material';
 
-import { useAuthActions, useAuthState } from '@features/auth';
-import type { AuthCredentials } from '@features/auth';
-import { useOnlineStatus } from '@shared/hooks/use-online-status';
+import { useAuthState, SignInForm } from '@features/auth';
 
 type LocationState = {
   from?: { pathname: string; search?: string };
@@ -24,78 +15,15 @@ function getRedirectPath(locationState: unknown): string {
 }
 
 export const AuthPage = (): React.JSX.Element => {
-  const [formValues, setFormValues] = useState<AuthCredentials>({
-    email: '',
-    password: '',
-  });
-
-  const [formErrorMessage, setFormErrorMessage] = useState<string>('');
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-
   const { isAuthenticated, isAuthReady } = useAuthState();
-  const authActions = useAuthActions();
-  const isOnline = useOnlineStatus();
+
   const navigate = useNavigate();
   const location = useLocation();
 
   const redirectToPath = getRedirectPath(location.state);
 
-  async function submitCredentials(
-    credentials: AuthCredentials,
-  ): Promise<void> {
-    try {
-      setIsSubmitting(true);
-      setFormErrorMessage('');
-      await authActions.signIn(credentials);
-      navigate(redirectToPath, { replace: true });
-    } catch (unknownError) {
-      const message =
-        unknownError instanceof Error
-          ? unknownError.message
-          : 'Sign in failed.';
-      setFormErrorMessage(message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  function handleEmailChange(event: React.ChangeEvent<HTMLInputElement>): void {
-    setFormValues((previousFormValues) => ({
-      ...previousFormValues,
-      email: event.target.value,
-    }));
-    setFormErrorMessage('');
-  }
-
-  function handlePasswordChange(
-    event: React.ChangeEvent<HTMLInputElement>,
-  ): void {
-    setFormValues((previousFormValues) => ({
-      ...previousFormValues,
-      password: event.target.value,
-    }));
-    setFormErrorMessage('');
-  }
-
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
-    event.preventDefault();
-
-    if (!isOnline) {
-      setFormErrorMessage(
-        'You are offline. Sign in requires an internet connection.',
-      );
-      return;
-    }
-
-    const emailValue = formValues.email.trim();
-    const passwordValue = formValues.password.trim();
-
-    if (!emailValue || !passwordValue) {
-      setFormErrorMessage('Email and password are required.');
-      return;
-    }
-
-    void submitCredentials({ email: emailValue, password: passwordValue });
+  function handleSignedIn(): void {
+    navigate(redirectToPath, { replace: true });
   }
 
   if (!isAuthReady) {
@@ -124,48 +52,7 @@ export const AuthPage = (): React.JSX.Element => {
         Sign in
       </Typography>
 
-      <Box
-        component="form"
-        onSubmit={handleSubmit}
-        sx={{ display: 'grid', gap: 2 }}
-      >
-        <TextField
-          label="Email"
-          type="email"
-          value={formValues.email}
-          onChange={handleEmailChange}
-          autoComplete="email"
-          required
-        />
-        <TextField
-          label="Password"
-          type="password"
-          value={formValues.password}
-          onChange={handlePasswordChange}
-          autoComplete="current-password"
-          required
-        />
-
-        {formErrorMessage ? (
-          <Typography color="error" variant="body2">
-            {formErrorMessage}
-          </Typography>
-        ) : null}
-
-        <Button
-          type="submit"
-          variant="contained"
-          disabled={isSubmitting || !isOnline}
-        >
-          {isSubmitting ? 'Signing in...' : 'Continue'}
-        </Button>
-
-        {!isOnline ? (
-          <Typography variant="caption" color="text.secondary">
-            Offline mode: authentication is unavailable.
-          </Typography>
-        ) : null}
-      </Box>
+      <SignInForm onSignedIn={handleSignedIn} />
     </Box>
   );
 };
