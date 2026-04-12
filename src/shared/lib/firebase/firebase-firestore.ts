@@ -8,6 +8,7 @@ import {
 } from 'firebase/firestore';
 
 import { getFirebaseApp } from './firebase-app';
+import { getErrorMessage } from '@shared/lib/type-guards/get-error-message';
 
 let firestoreInstance: Firestore | null = null;
 let isPersistenceRequested = false;
@@ -46,10 +47,9 @@ export async function enableFirestorePersistence(): Promise<void> {
   try {
     await enableIndexedDbPersistence(getFirebaseFirestore());
   } catch (unknownError) {
-    const message =
-      unknownError instanceof Error
-        ? unknownError.message
-        : String(unknownError);
-    console.warn('[Firestore] Persistence was not enabled:', message);
+    console.warn(
+      '[Firestore] Persistence was not enabled:',
+      getErrorMessage(unknownError, String(unknownError)),
+    );
   }
 }

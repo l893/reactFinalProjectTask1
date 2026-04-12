@@ -10,6 +10,7 @@ import {
 } from 'firebase/firestore';
 
 import { getFirebaseFirestore } from '@shared/lib/firebase/firebase-firestore';
+import { isNonEmptyString, isNumber, isString } from '@shared/lib/type-guards';
 import type { Note } from '../model/note.types';
 
 interface NoteDocument {
@@ -46,18 +47,15 @@ export function subscribeToUserNotes(
       const notes: Note[] = snapshot.docs.map((documentSnapshot) => {
         const data = documentSnapshot.data() as NoteDocument;
 
-        const createdAt =
-          typeof data.createdAt === 'number' ? data.createdAt : Date.now();
-        const updatedAt =
-          typeof data.updatedAt === 'number' ? data.updatedAt : createdAt;
+        const createdAt = isNumber(data.createdAt)
+          ? data.createdAt
+          : Date.now();
+        const updatedAt = isNumber(data.updatedAt) ? data.updatedAt : createdAt;
 
         return {
           id: documentSnapshot.id,
-          title:
-            typeof data.title === 'string' && data.title.trim()
-              ? data.title
-              : 'New note',
-          body: typeof data.body === 'string' ? data.body : '',
+          title: isNonEmptyString(data.title) ? data.title : 'New note',
+          body: isString(data.body) ? data.body : '',
           createdAt,
           updatedAt,
         };
