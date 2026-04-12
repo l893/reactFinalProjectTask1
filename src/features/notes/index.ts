@@ -1,3 +1,3 @@
-export { NotesProvider } from './notes-provider';
-export { useNotesActions, useNotesState } from './notes-context';
-export type { NotesActions, NotesState } from './notes.types';
+export { NotesProvider } from './model/notes-provider';
+export { useNotesActions, useNotesState } from './model/notes-context';
+export type { NotesActions, NotesState } from './model/notes.types';
